@@ -26,7 +26,7 @@ dependencies {
     implementation(kotlin("stdlib-jdk8"))
 
     implementation("ch.qos.logback:logback-classic:$logback")
-
+    implementation("com.just-ai.jaicf:telegram:$jaicf")
     implementation("com.just-ai.jaicf:core:$jaicf")
     implementation("com.just-ai.jaicf:jaicp:$jaicf")
     implementation("com.just-ai.jaicf:caila:$jaicf")
