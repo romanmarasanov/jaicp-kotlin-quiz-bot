@@ -3,14 +3,17 @@ package com.justai.jaicf.template.scenario
 import com.github.kotlintelegrambot.entities.KeyboardReplyMarkup
 import com.github.kotlintelegrambot.entities.ParseMode
 import com.github.kotlintelegrambot.entities.keyboard.KeyboardButton
-import com.justai.jaicf.activator.caila.caila
+import com.justai.jaicf.api.BotRequest
 import com.justai.jaicf.builder.Scenario
 import com.justai.jaicf.channel.telegram.telegram
+import com.justai.jaicf.template.dao.DAO
 
+val dao: DAO = DAO()
 val mainScenario = Scenario {
     state("start") {
         activators {
             regex("/start")
+            regex("К стартовому сообщению")
         }
         action {
             reactions.telegram?.say(
@@ -24,8 +27,13 @@ val mainScenario = Scenario {
     state("q1") {
         activators {
             regex("Начать тест")
+            regex("Начать сначала!")
         }
         action {
+            val username = request.telegram?.message?.chat?.username
+            if (username != null) {
+                dao.createOrResetRecord(username)
+            }
             reactions.telegram?.say(
                 "Вопрос 1.\n\nЧто из этого в настоящее время не поддерживается в Kotlin?\n\n" +
                         "1) JVM\n" +
@@ -38,7 +46,6 @@ val mainScenario = Scenario {
                     listOf(KeyboardButton("LLVM")),
                     listOf(KeyboardButton(".NET CLR"))))
             )
-
         }
     }
     state("q2") {
@@ -49,6 +56,7 @@ val mainScenario = Scenario {
             regex(".NET CLR")
         }
         action {
+            record(1, request)
             reactions.telegram?.say(
                 parseMode = ParseMode.MARKDOWN,
                 text = "Вопрос 2.\n\nКакое выражение Kotlin эквивалентно данному из Java:\n\n ```int x = a ? b : c```\n\n" +
@@ -73,10 +81,11 @@ val mainScenario = Scenario {
             regex("4")
         }
         action {
+            record(2, request)
             reactions.telegram?.say(
                 parseMode = ParseMode.MARKDOWN,
-                text = "Вопрос 3.\n\nЧто применимо для следующего объявления класса?\n" +
-                        "```class Person (val name: String)```\n\n" +
+                text = "Вопрос 3.\n\nЧто применимо для следующего объявления класса?\n\n" +
+                        "```\nclass Person (val name: String)```\n\n" +
                         "1) Он package-private\n" +
                         "2) Он может быть расширен другими классами\n" +
                         "3) Он public\n" +
@@ -97,6 +106,7 @@ val mainScenario = Scenario {
             regex("У него приватное свойство \"name\"")
         }
         action {
+            record(3, request)
             reactions.telegram?.say(
                 "Вопрос 4.\n\nЕсть ли у Kotlin примитивные типы данных, такие как int, long, float?\n\n" +
                         "1) Нет, Kotlin не имеет и не использует примитивные типы данных\n" +
@@ -119,9 +129,11 @@ val mainScenario = Scenario {
             regex("Да, Kotlin в этом отношении похож на Java")
         }
         action {
+            record(4, request)
             reactions.telegram?.say(
                 parseMode = ParseMode.MARKDOWN,
-                text = "Вопрос 5.\n\nЧто такое ```to``` в приведенном ниже примере:\n\n```val test = 33 to 42```\n\n" +
+                text = "Вопрос 5.\n\nЧто такое ```to``` в приведенном ниже примере:\n\n" +
+                        "```\nval test = 33 to 42```\n\n" +
                         "1) Инфиксная функция, создающая пару (33, 42)\n" +
                         "2) Ключевое слово Kotlin для создания пары (33, 42)\n" +
                         "3) Ключевое слово для создания диапазона от 33 до 42\n" +
@@ -142,13 +154,14 @@ val mainScenario = Scenario {
             regex("Опечатка")
         }
         action {
+            record(5, request)
             reactions.telegram?.say(
                 parseMode = ParseMode.MARKDOWN,
                 text = "Вопрос 6.\n\nКакое из объявлений функций является валидным?\n\n" +
-                        "1) ```int sum(int a, int b)```\n\n" +
-                        "2) ```int sum(a: Int, b: Int)```\n\n" +
-                        "3) ```function sum(a: Int, b: Int): Int```\n\n" +
-                        "4) ```fun sum(a: Int, b: Int): Int```",
+                        "1) int sum(int a, int b)\n\n" +
+                        "2) int sum(a: Int, b: Int)\n\n" +
+                        "3) function sum(a: Int, b: Int): Int\n\n" +
+                        "4) fun sum(a: Int, b: Int): Int",
                 replyMarkup = KeyboardReplyMarkup(listOf(
                     listOf(KeyboardButton("int sum(int a, int b)")),
                     listOf(KeyboardButton("int sum(a: Int, b: Int)")),
@@ -165,6 +178,7 @@ val mainScenario = Scenario {
             regex("fun sum\\(a: Int, b: Int\\): Int")
         }
         action {
+            record(6, request)
             reactions.telegram?.say(
                 parseMode = ParseMode.MARKDOWN,
                 text = "Вопрос 7.\n\nВ чем ключевое отличие ```Iterable<T>``` и ```Sequence<T>```в Kotlin?\n\n" +
@@ -188,6 +202,7 @@ val mainScenario = Scenario {
             regex("Итераторы обрабатываются параллельно \\(многопоточно\\)")
         }
         action {
+            record(7, request)
             reactions.telegram?.say(
                 parseMode = ParseMode.MARKDOWN,
                 text = "Вопрос 8.\n\nЧего не предлагает dataclass?\n\n" +
@@ -212,10 +227,11 @@ val mainScenario = Scenario {
             regex("Авто-генерируемые методы hashCode\\(\\) и equals\\(\\)")
         }
         action {
+            record(8, request)
             reactions.telegram?.say(
                 parseMode = ParseMode.MARKDOWN,
                 text = "Вопрос 9.\n\nЧто выведет следующий код?\n\n" +
-                        "```" +
+                        "```\n" +
                         "val listA = mutableListOf(1, 2, 3)\n" +
                         "val listB = listA.add(4)\n" +
                         "print(listB)```\n\n" +
@@ -239,12 +255,13 @@ val mainScenario = Scenario {
             regex("Unit")
         }
         action {
+            record(9, request)
             reactions.telegram?.say(
                 parseMode = ParseMode.MARKDOWN,
                 text = "Вопрос 10.\n\nВ чем разница между a и b?\n\n" +
-                        "```" +
+                        "```\n" +
                         "var a: String? = \"KotlinQuiz\"\n" +
-                        "var b: String = \"KotlinQuiz\"```" +
+                        "var b: String = \"KotlinQuiz\"```\n\n" +
                         "1) a является volatile, как в Java\n" +
                         "2) b является final и не может быть изменено\n" +
                         "3) a является final и не может быть изменено\n" +
@@ -265,13 +282,14 @@ val mainScenario = Scenario {
             regex("b никогда не сможет стать null")
         }
         action {
+            record(10, request)
             reactions.telegram?.say(
                 parseMode = ParseMode.MARKDOWN,
                 text = "Вопрос 11.\n\nКак в Kotlin правильно объявить переменную целочисленного типа?\n\n" +
-                        "1) ```var i : int = 42```\n\n" +
-                        "2) ```let i = 42```\n\n" +
-                        "3) ```int i = 42```\n\n" +
-                        "4) ```var i : Int = 42```",
+                        "1) ```\nvar i : int = 42```\n\n" +
+                        "2) ```\nlet i = 42```\n\n" +
+                        "3) ```\nint i = 42```\n\n" +
+                        "4) ```\nvar i : Int = 42```",
                 replyMarkup = KeyboardReplyMarkup(listOf(
                     listOf(KeyboardButton("var i : int = 42")),
                     listOf(KeyboardButton("let i = 42")),
@@ -288,10 +306,11 @@ val mainScenario = Scenario {
             regex("var i : Int = 42")
         }
         action {
+            record(11, request)
             reactions.telegram?.say(
                 parseMode = ParseMode.MARKDOWN,
-                text = "Вопрос 12.\n\nКакой тип у arr?\n\n" +
-                        "```val arr = arrayOf(1, 2, 3)\n\n```" +
+                text = "Вопрос 12.\n\nКакой тип у arr?\n" +
+                        "```\nval arr = arrayOf(1, 2, 3)\n\n```" +
                         "1) ```Array<Int>```\n\n" +
                         "2) ```Int[]```\n\n" +
                         "3) ```int[]```\n\n" +
@@ -312,6 +331,7 @@ val mainScenario = Scenario {
             regex("IntArray")
         }
         action {
+            record(12, request)
             reactions.telegram?.say(
                 parseMode = ParseMode.MARKDOWN,
                 text = "Вопрос 13.\n\nЧто из приведенного в Kotlin, эквивалентно статическому методу из Java?\n\n" +
@@ -341,6 +361,7 @@ val mainScenario = Scenario {
             regex("Класс с использованием static")
         }
         action {
+            record(13, request)
             reactions.telegram?.say(
                 parseMode = ParseMode.MARKDOWN,
                 text = "Вопрос 14.\n\nДля чего нужен оператор !! ?\n\n" +
@@ -364,6 +385,7 @@ val mainScenario = Scenario {
             regex("Кидает исключение, если операнд равен null")
         }
         action {
+            record(14, request)
             reactions.telegram?.say(
                 parseMode = ParseMode.MARKDOWN,
                 text = "Вопрос 15.\n\nУкажите правильный синтаксис для преобразования строки “42” в long:\n\n" +
@@ -387,6 +409,7 @@ val mainScenario = Scenario {
             regex("val l: Long = Long.parseLong\\(\"42\"\\)")
         }
         action {
+            record(15, request)
             reactions.telegram?.say(
                 parseMode = ParseMode.MARKDOWN,
                 text = "Вопрос 16.\n\nЧто такое корутины (coroutines)?\n\n" +
@@ -396,7 +419,7 @@ val mainScenario = Scenario {
                         "4) Автоматически сгенерированные методы hashCode() и equals() в data classes",
                 replyMarkup = KeyboardReplyMarkup(listOf(
                     listOf(KeyboardButton("Функции, принимающие/возвращающие функции")),
-                    listOf(KeyboardButton("Инструмент асинхронной работы кода")),
+                    listOf(KeyboardButton("Инструмент асинхронной работы в Kotlin")),
                     listOf(KeyboardButton("Термин для описания методов")),
                     listOf(KeyboardButton("Генерация бойлерплейта"))))
             )
@@ -405,11 +428,12 @@ val mainScenario = Scenario {
     state("q17") {
         activators {
             regex("Функции, принимающие/возвращающие функции")
-            regex("Инструмент асинхронной работы кода")
+            regex("Инструмент асинхронной работы в Kotlin")
             regex("Термин для описания методов")
             regex("Генерация бойлерплейта")
         }
         action {
+            record(16, request)
             reactions.telegram?.say(
                 parseMode = ParseMode.MARKDOWN,
                 text = "Вопрос 17.\n\nЧто делает этот код: \n\n" +
@@ -435,6 +459,7 @@ val mainScenario = Scenario {
             regex("Вызывает функцию, которая вернется после вызова foo")
         }
         action {
+            record(17, request)
             reactions.telegram?.say(
                 "Вопрос 18.\n\nСовместим ли Kotlin с Java?\n\n" +
                         "1) Kotlin может легко вызвать код Java, в то время как Java не может получить доступ к коду на Kotlin\n" +
@@ -457,17 +482,18 @@ val mainScenario = Scenario {
             regex("Полная совместимость в обоих направлениях")
         }
         action {
+            record(18, request)
             reactions.telegram?.say(
                 "Вопрос 19.\n\nВ чем разница между val и var в Kotlin?\n\n" +
                         "1) Переменные, объявленные с помощью val, являются final, а переменные var – нет\n" +
                         "2) Переменные, объявленные с помощью val, имеют доступ только к const членам\n" +
                         "3) Переменные, объявленные с помощью var, являются final, а переменные val – нет\n" +
-                        "4) 4",
+                        "4) У этих переменных разная область видимости",
                 replyMarkup = KeyboardReplyMarkup(listOf(
                     listOf(KeyboardButton("val – final, var – нет")),
                     listOf(KeyboardButton("val имеет доступ только к константам")),
                     listOf(KeyboardButton("var – final, val – нет")),
-                    listOf(KeyboardButton("разные области видимости"))))
+                    listOf(KeyboardButton("Разные области видимости"))))
             )
         }
     }
@@ -476,13 +502,14 @@ val mainScenario = Scenario {
             regex("val – final, var – нет")
             regex("val имеет доступ только к константам")
             regex("var – final, val – нет")
-            regex("разные области видимости")
+            regex("Разные области видимости")
         }
         action {
+            record(19, request)
             reactions.telegram?.say(
                 parseMode = ParseMode.MARKDOWN,
-                text = "Вопрос 20.\n\nЧто выведет следующий код: \n\n" +
-                        "```val list : List<Int> = listOf(1, 2, 3)\n" +
+                text = "Вопрос 20.\n\nЧто выведет следующий код: \n" +
+                        "```\nval list : List<Int> = listOf(1, 2, 3)\n" +
                         "\tlist.add(4)\n" +
                         "\tprint(list)```\n\n" +
                         "1) Он не компилируется, так как List не имеет метода add\n" +
@@ -506,8 +533,24 @@ val mainScenario = Scenario {
             regex("\\[5, 6, 7\\]")
         }
         action {
-
-            reactions.telegram?.say("Тест окончен")
+            record(20, request)
+            val username = request.telegram?.message?.chat?.username
+            var scores = 0
+            if (username != null) {
+                scores = dao.getScores(username)!!
+            }
+            val conclusion = getConclusion(scores)
+            reactions.telegram?.say(
+                "Тест окончен!\n\n" +
+                        "Твой балл: $scores из 20 \n\n" +
+                        conclusion
+            )
+            reactions.telegram?.say(
+                "Если хочешь, можем повторить тест. Повторенье – мать ученья!",
+                replyMarkup = KeyboardReplyMarkup(listOf(
+                    listOf(KeyboardButton("Начать сначала!")),
+                    listOf(KeyboardButton("К стартовому сообщению"))
+            )))
         }
     }
 
@@ -516,5 +559,20 @@ val mainScenario = Scenario {
             "Я тебя не понимаю, попробуй нажимать на кнопки!",
             "Я довольно глупый бот, поэтому нажимай на кнпоки, пожалуйста!"
         )
+    }
+}
+
+fun getConclusion(scores: Int) = when (scores) {
+        0, 1, 2, 3, 4, 5 -> "Ты явно только начал учить Kotlin! Не отчаивайся и приходи снова через некоторое время"
+        6, 7, 8, 9, 10 -> "Не так уж и плохо, но можно лучше! Ещё стоит подтянуть свой Kotlin!"
+        11, 12, 13, 14, 15 -> "А ты явно что-то знаешь! Ещё немного – и сможешь назвать себя профи!"
+        else -> "Круто! С такими знаниями Kotlin уже и на проект можно 😎"
+}
+
+fun record(questionNumber: Int, request: BotRequest) {
+    val username = request.telegram?.message?.chat?.username
+    val prevQuestionAns = request.telegram?.message?.text
+    if (username != null && prevQuestionAns != null) {
+        dao.writeResult(questionNumber, prevQuestionAns, username)
     }
 }
